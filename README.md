@@ -4,7 +4,9 @@ This repository currently contains the submission for Lab 2 of CSE 5544: Data Vi
 
 Visit the [website](https://official-daniel-jackson.github.io/) to preview the final assignment.
 
-Discussion:
+## **Discussion:**
+
 The visualization above describes a relationship between an undefined regional climate and time. Each circle within the scatterplot represents an event in the set, where a measure of temperature was recorded at the beginning of each month of the year from 1850-2015. The axes are fit to the loose minimum and maximum integers of the set using the "d3.extent" and "d3.nice" methods. This ensures that any parsed data is within the draw space of the SVG elements without spilling off the border of the graph. Margins were manually implemented around both axes to accommodate for labeling major ticks. The dot size was increase by 10x to make highly certain temperature readings visible nearing modern times (i.e., 2015). Opacity was also logarithmically scaled to prevent overlap in uncertainty radii from obscuring data collected within the same relative temperature range and year. The background image was hand-drawn to represent seasonal differences, where the upper range indicates summer and the lower range indicates winter recordings. To keep the scatterplot in focus and accessible, the background image opacity was reduced and a generic "whitesmoke" colored box was applied to the view space.
+
 
 Although opacity and backgrounds were optional, there is an argument that both can equally promote and inhibit understanding of the data. The color distribution helps grasp the change in temperature (assuming the measurements are both in Celsius and pertain to average global readings). Unfortunately, this could obscure the visibility of the dots as color drags attention away from the actual shape of scatterplot clouds. Dynamic opacity helps viewers see overlapping data points that were scaled up uniformly. This also comes at the cost of readability for individual data points, as the user must estimate with their perception where the center of a circle is based on the larger the radius and lower the opacity.
