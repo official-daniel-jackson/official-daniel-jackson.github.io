@@ -3,63 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lab 1: Create simple charts using svg</title>
+    <title>Lab 2: D3 Charts Representations</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
-
-    <svg> 
-        <g id="blue_bar_chart"> <!-- bar graph with hard-coded data -->
-            <rect x="0" y="250" width="50" height="150"></rect>
-            <rect x="50" y="175" width="50" height="225"></rect>
-            <rect x="100" y="175" width="50" height="225"></rect>
-            <rect x="150" y="100" width="50" height="300"></rect>
-            <rect x="200" y="100" width="50" height="300"></rect>
-            <rect x="250" y="175" width="50" height="225"></rect>
-            <rect x="300" y="175" width="50" height="225"></rect>
-            <rect x="350" y="250" width="50" height="150"></rect>
+    <h1>
+        Average Temperature over Time [1850 - 2015]
+    </h1>
+    
+    <svg>
+        <g id="chart1">
+            
         </g>
     </svg>
+    
+    <h2>
+        Discussion:
+    </h2>
+    
+    <p>
+        The visualizaiton above describes a relationship between an undefine regional climate and time. Each circle within the scatterplot represents an event in the set, where a measure of temperature was recorded at the beginning of each month of the year from 1850-2015. The axes are fit to the loose minimum and maximum integers of the set using the "d3.extent" and "d3.nice" methods. This ensures that any parsed data is within the draw space of the SVG elements without spilling off the border of the graph. Margins were manually implemented around both axes to accomidate for labeling major ticks. The dot size was increase by 10x to make highly certain temperature readings visible nearing modern times (i.e., 2015). Opacity was also logarithmically scaled to prevent overlap in uncertainty radii from obscuring data collected within the same relative temperature range and year. The background image was handrawn to represent seasonal differences, where the upper range indicates summer and the lower range indicates winter recordings. To keep the scatterplot in focus and accessible, the background image opacity was reduced and a generic "whitesmoke" colored box was applied to the viewspace.
+        <br></br>
+        Although opacity and backgrounds were optional, there is an argument that both can equally promote and inhibit understanding of the data. The color distribution helps grasp the change in temperature (assuming the measurements are both in celcius and pertain to average global readings). Unfortunately, this could obscure the visibility of the dots as color drags attention away from the actual shape of scatterplot clouds. Dynamic opacity helps viewers see overlapping data points that were scaled up uniformily. This also comes at the cost of readability for individual data points, as the user must estimate with their perception where the center of a circle is based on the larger the radius and lower the opacity. 
+    </p>
 
-    <svg> 
-        <g id="red_bar_chart"> <!-- but what if it was red? :o -->
-            <rect x="0" y="250" width="50" height="150"></rect>
-            <rect x="50" y="175" width="50" height="225"></rect>
-            <rect x="100" y="175" width="50" height="225"></rect>
-            <rect x="150" y="100" width="50" height="300"></rect>
-            <rect x="200" y="100" width="50" height="300"></rect>
-            <rect x="250" y="175" width="50" height="225"></rect>
-            <rect x="300" y="175" width="50" height="225"></rect>
-            <rect x="350" y="250" width="50" height="150"></rect>  
-        </g>
-    </svg>
+    <script>
+       async function loadData() {
+            <!-- Load data from source -->
+            const dataset = await d3.csv("GlobalTemperatures.csv");
+            
+            <!-- Clean dates as local times -->
+            var formatDate = d3.timeParse("%Y-%m-%d");
+            
+            <!-- Clean strings into floats -->
+            dataset.forEach(function(d){
+                d.dt = formatDate(d.dt)
+                d.LandAverageTemperature = parseFloat(d.LandAverageTemperature)
+                d.LandAverageTemperatureUncertainty = parseFloat(d.LandAverageTemperatureUncertainty)
+                d.LandAndOceanAverageTemperature = parseFloat(d.LandAndOceanAverageTemperature)
+                d.LandAndOceanAverageTemperatureUncertainty = parseFloat(d.LandAndOceanAverageTemperatureUncertainty)
+            });
+            
+            <!-- Bind Scatterplot to an ID -->
+            var svg = d3.select("#chart1");
+            
+            <!-- Render background image -->
+            var image = d3
+                .select("svg")
+                .insert("image", ":first-child")
+                .attr("xlink:href", "background.png")
+                .attr("width", 440)
+                .attr("x", 30)
+                .attr("y", 10)
+                .attr("opacity", 0.5)
+            
+            <!-- Create X values on Axis -->
+            var x = d3
+                .scaleTime()
+                .domain(d3.extent(dataset, d => d.dt))
+                .range([30,470])
+                .nice();
+            var xAxis = svg
+                .append("g")
+                .attr("transform","translate(0,450)")
+                .call(d3.axisBottom(x));
+            
+            <!-- Create Y values on Axis -->
+            var y = d3
+                .scaleLinear()
+                .domain(d3.extent(dataset, d => d.LandAverageTemperature))
+                .range([450,30])
+                .nice();
+            var yAxis = svg
+                .append("g")
+                .attr("transform", "translate(30,0)")
+                .call(d3.axisLeft(y));
+            
+            <!-- Adjust opacity by LAT.Uncertainty -->
+            var rOpacity = d3
+                .scaleLog()
+                .domain(d3.extent(dataset, d => d.LandAverageTemperatureUncertainty))
+                .range([1,0])
+                
+            
+            <!-- Render Scatterplot of Circles -->
+            var scatterplot = svg
+                .append("g")
+                .selectAll("idk") <!-- MUST be any 'string'... weird. -->
+                .data(dataset) <!-- source -->
+                .join("circle") <!-- shape -->
+                .attr("cx",function(d,i){ <!-- time on xAxis -->
+                    return x(d.dt)
+                })
+                .attr("cy",function(d,i){ <!-- temp on yAxis -->
+                    return y(d.LandAverageTemperature)
+                })
+                .attr("r",function(d,i){ <!-- scale up to see data -->
+                    return d.LandAverageTemperatureUncertainty * 10
+                })
+                .attr("opacity",function(d,i){ <!-- dynamic opacity -->
+                    return rOpacity(d.LandAverageTemperatureUncertainty)
+                })
 
-    <svg> 
-        <g id="line_line_chart"> <!-- draws lines matching bar graph -->
-            <line x1="0" y1="250" x2="50" y2="175"></line>
-            <line x1="50" y1="175" x2="100" y2="175"></line>
-            <line x1="100" y1="175" x2="150" y2="100"></line>
-            <line x1="150" y1="100" x2="250" y2="100"></line>
-            <line x1="250" y1="100" x2="300" y2="175"></line>
-            <line x1="300" y1="175" x2="350" y2="175"></line>
-            <line x1="350" y1="175" x2="400" y2="250"></line>
-        </g>
-    </svg>
-
-    <svg> 
-        <g id="path_line_chart"> <!-- draws polyline to the bar -->
-            <path d=
-            "M0 250 
-            L50 175 
-            L100 175 
-            L150 100 
-            L250 100 
-            L300 175  
-            L350 175 
-            L400 250">
-            </path>
-        </g>
-    </svg>
-
+        }
+        loadData()
+    </script>
 </body>
 </html>

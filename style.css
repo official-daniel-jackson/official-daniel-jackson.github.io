@@ -1,18 +1,9 @@
 svg{
-    width: 400px;
-    height: 400px;
-    background-color: white;
-    stroke: black
+    width: 500px;
+    height: 500px;
+    background-color: whitesmoke;
 }
 
-#red_bar_chart{
-    fill: red;
-}
-
-#blue_bar_chart{
-    fill: blue;
-}
-
-#path_line_chart{
-    fill: transparent;
+circle {
+    fill: black;
 }
