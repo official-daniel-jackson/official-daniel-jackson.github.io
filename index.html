@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lab 2: D3 Charts Representations</title>
+    <title>Lab 3: visualization design and D3 color implementation</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
@@ -18,6 +18,44 @@
         </g>
     </svg>
     
+    <br>
+    
+    <button id="default">
+        reset
+    </button>
+    
+    <button id="colormap-button-1">
+        colormap-button-1
+    </button>
+    
+    <button id="colormap-button-2">
+        colormap-button-2
+    </button>
+    
+    <button id="colormap-button-3">
+        colormap-button-3
+    </button>
+
+    <h2>
+        New Functionality for Lab 3:
+    </h2>
+
+    <p>
+        3 buttons have been implemented via Javascript to toggle different colormappings:
+        <ul>
+           <li>
+            colormap-button-1 = continuous, linear scaling from red to green
+           </li>
+           <li>
+            colormap-button-2 = continuous, min/avg/max normalization using #d7191c, #ffffbf, #1a9641
+           </li>
+           <li>
+            colormap-button-3 = quantized, 5-band scaling using #d7191c, #fdae61, #ffffbf, #a6d96a, #1a9641 
+           </li>
+        </ul>
+
+    </p>
+
     <h2>
         Discussion:
     </h2>
@@ -56,7 +94,7 @@
                 .attr("width", 440)
                 .attr("x", 30)
                 .attr("y", 10)
-                .attr("opacity", 0.5)
+                .attr("opacity", 0.35)
             
             <!-- Create X values on Axis -->
             var x = d3
@@ -86,7 +124,6 @@
                 .domain(d3.extent(dataset, d => d.LandAverageTemperatureUncertainty))
                 .range([1,0])
                 
-            
             <!-- Render Scatterplot of Circles -->
             var scatterplot = svg
                 .append("g")
@@ -105,7 +142,48 @@
                 .attr("opacity",function(d,i){ <!-- dynamic opacity -->
                     return rOpacity(d.LandAverageTemperatureUncertainty)
                 })
+            
+            <!-- Make buttons change elements of circle on click -->
+            <!-- then apply conditional logic based on user input -->
+            d3.select("#default")
+                .on("click", function () {
+                    d3.selectAll("circle")
+                        .style("fill", "black")
+                })
 
+            var button1 = d3.scaleLinear()
+                .domain([
+                    d3.min(dataset, d => d.LandAverageTemperatureUncertainty),
+                    d3.max(dataset, d => d.LandAverageTemperatureUncertainty)
+                ])
+                .range(["red", "green"])
+
+            d3.select("#colormap-button-1").on("click", function(){
+                    d3.selectAll("circle")
+                        .style("fill", d => button1(d.LandAverageTemperatureUncertainty))
+                })
+
+            var button2 = d3.scaleDiverging()
+                .domain([
+                    d3.min(dataset, d => d.LandAverageTemperatureUncertainty),
+                    d3.mean(dataset, d => d.LandAverageTemperatureUncertainty),
+                    d3.max(dataset, d => d.LandAverageTemperatureUncertainty)
+                ])
+                .range(["#d7191c", "#ffffbf", "#1a9641"])
+
+            d3.select("#colormap-button-2").on("click", function(){
+                    d3.selectAll("circle")
+                        .style("fill", d => button2(d.LandAverageTemperatureUncertainty))
+                })
+
+            var button3 = d3.scaleQuantize()
+                .domain(d3.extent(dataset, d => d.LandAndOceanAverageTemperatureUncertainty))
+                .range(["#d7191c", "#fdae61", "#ffffbf", "#a6d96a", "#1a9641"])
+            
+            d3.select("#colormap-button-3").on("click", function(){
+                    d3.selectAll("circle")
+                        .style("fill", d => button3(d.LandAverageTemperatureUncertainty))
+                })
         }
         loadData()
     </script>

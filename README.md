@@ -1,8 +1,16 @@
 # official-daniel-jackson.github.io
 
-This repository currently contains the submission for Lab 2 of CSE 5544: Data Visualization.
+This repository currently contains the submission for *Lab 3 of CSE 5544: Data Visualization*.
 
 Visit the [website](https://official-daniel-jackson.github.io/) to preview the final assignment.
+
+## **New Functionality for Lab 3**
+
+3 buttons have been implemented via Javascript to toggle different colormappings:
+* colormap-button-1 = continuous, linear scaling from red to green
+* colormap-button-2 = continuous, min/avg/max normalization using #d7191c, #ffffbf, #1a9641
+* colormap-button-3 = quantized, 5-band scaling using #d7191c, #fdae61, #ffffbf, #a6d96a, #1a9641
+
 
 ## **Discussion:**
 
