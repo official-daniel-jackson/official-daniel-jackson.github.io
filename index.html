@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lab 3: visualization design and D3 color implementation</title>
+    <title>Lab 4: Color uses & D3 interactive editing of visual features</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
@@ -36,53 +36,47 @@
         colormap-button-3
     </button>
 
+    <button id="remove-bg">
+        remove background
+    </button>
+
     <h2>
-        New Functionality for Lab 3:
+        New Functionality:
     </h2>
 
-    <p>
-        3 buttons have been implemented via Javascript to toggle different colormappings:
-    </p>
-    
     <ul>
-        <li>
-            colormap-button-1 = continuous, linear scaling from red to green
-        </li>
-        <li>
-            colormap-button-2 = continuous, min/avg/max normalization using #d7191c, #ffffbf, #1a9641
-        </li>
-        <li>
-            colormap-button-3 = quantized, 5-band scaling using #d7191c, #fdae61, #ffffbf, #a6d96a, #1a9641 
-        </li>
+        <li>Altered variable names</li>
+        <li>Modified scaling methods</li>
+        <li>CSV to JSON data structure</li>
+        <li>"remove background" for optional distinguishability</li>
+        <li>Optimized logic on "reset" to handle background changes</li>
     </ul>
 
     <h2>
-        Discussion:
+        Updates via Lab 4
     </h2>
-    
+
     <p>
-        The visualization above describes a relationship between an undefined regional climate and time. Each circle within the scatterplot represents an event in the set, where a measure of temperature was recorded at the beginning of each month of the year from 1850-2015. The axes are fit to the loose minimum and maximum integers of the set using the "d3.extent" and "d3.nice" methods. This ensures that any parsed data is within the draw space of the SVG elements without spilling off the border of the graph. Margins were manually implemented around both axes to accommodate for labeling major ticks. The dot size was increase by 10x to make highly certain temperature readings visible nearing modern times (i.e., 2015). Opacity was also logarithmically scaled to prevent overlap in uncertainty radii from obscuring data collected within the same relative temperature range and year. The background image was hand-drawn to represent seasonal differences, where the upper range indicates summer and the lower range indicates winter recordings. To keep the scatterplot in focus and accessible, the background image opacity was reduced and a generic "whitesmoke" colored box was applied to the view space.
-        <br>
-        Although opacity and backgrounds were optional, there is an argument that both can equally promote and inhibit understanding of the data. The color distribution helps grasp the change in temperature (assuming the measurements are both in Celsius and pertain to average global readings). Unfortunately, this could obscure the visibility of the dots as color drags attention away from the actual shape of scatterplot clouds. Dynamic opacity helps viewers see overlapping data points that were scaled up uniformly. This also comes at the cost of readability for individual data points, as the user must estimate with their perception where the center of a circle is based on the larger the radius and lower the opacity.
+        The pre-existing data was re-implemented using d3's json method over CSV to demonstrate how to handle different data file formats. Former functions related to the scaling of position (X,Y) and radius (r) were altered with updated labels and more impactful scaling methods (scaleLinear & scaleSqrt). The smallest circles measure at 10 and grow to 20 normalized units. Axes (axisBottom, axisLeft) were optimized slightly for faster rendering. Included in the project files is a poorly hand-drawn proof about a hypothetical colormapping being perceptually non-uniform to the human eye based on the variant luminance distance between levels.
     </p>
 
     <script>
        async function loadData() {
             <!-- Load data from source -->
-            const dataset = await d3.csv("GlobalTemperatures.csv");
+            const dataset = await d3.json("GlobalTemperatures.json");
             
             <!-- Clean dates as local times -->
-            var formatDate = d3.timeParse("%Y-%m-%d");
+            var formatDate = d3.timeParse("%Y%m%d");
             
             <!-- Clean strings into floats -->
-            dataset.forEach(function(d){
-                d.dt = formatDate(d.dt)
-                d.LandAverageTemperature = parseFloat(d.LandAverageTemperature)
-                d.LandAverageTemperatureUncertainty = parseFloat(d.LandAverageTemperatureUncertainty)
-                d.LandAndOceanAverageTemperature = parseFloat(d.LandAndOceanAverageTemperature)
-                d.LandAndOceanAverageTemperatureUncertainty = parseFloat(d.LandAndOceanAverageTemperatureUncertainty)
+            dataset.forEach(function(d) {
+                d.time = formatDate(String(d.time));
+                d.LAT = +d.LAT;
+                d.LATU = +d.LATU;
+                d.LOAT = +d.LOAT;
+                d.LOATU = +d.LOATU;
             });
-            
+       
             <!-- Bind Scatterplot to an ID -->
             var svg = d3.select("#chart1");
             
@@ -97,31 +91,37 @@
                 .attr("opacity", 0.35)
             
             <!-- Create X values on Axis -->
-            var x = d3
-                .scaleTime()
-                .domain(d3.extent(dataset, d => d.dt))
+            var cxScale = d3
+                .scaleTime() <!-- fits better than linear -->
+                .domain(d3.extent(dataset, d => d.time))
                 .range([30,470])
                 .nice();
             var xAxis = svg
                 .append("g")
                 .attr("transform","translate(0,450)")
-                .call(d3.axisBottom(x));
+                .call(d3.axisBottom(cxScale));
             
             <!-- Create Y values on Axis -->
-            var y = d3
+            var cyScale = d3
                 .scaleLinear()
-                .domain(d3.extent(dataset, d => d.LandAverageTemperature))
+                .domain(d3.extent(dataset, d => d.LAT))
                 .range([450,30])
                 .nice();
             var yAxis = svg
                 .append("g")
                 .attr("transform", "translate(30,0)")
-                .call(d3.axisLeft(y));
+                .call(d3.axisLeft(cyScale));
+            
+            <!-- Adjust radius by LAT.Uncertainty -->
+            var rScale = d3
+                .scaleSqrt() <!-- this makes me sad -->
+                .domain(d3.extent(dataset, d => d.LATU))
+                .range([10,20])
             
             <!-- Adjust opacity by LAT.Uncertainty -->
             var rOpacity = d3
                 .scaleLog()
-                .domain(d3.extent(dataset, d => d.LandAverageTemperatureUncertainty))
+                .domain(d3.extent(dataset, d => d.LATU))
                 .range([1,0])
                 
             <!-- Render Scatterplot of Circles -->
@@ -131,16 +131,16 @@
                 .data(dataset) <!-- source -->
                 .join("circle") <!-- shape -->
                 .attr("cx",function(d,i){ <!-- time on xAxis -->
-                    return x(d.dt)
+                    return cxScale(d.time)
                 })
                 .attr("cy",function(d,i){ <!-- temp on yAxis -->
-                    return y(d.LandAverageTemperature)
+                    return cyScale(d.LAT)
                 })
                 .attr("r",function(d,i){ <!-- scale up to see data -->
-                    return d.LandAverageTemperatureUncertainty * 10
+                    return rScale(d.LATU) <!-- overlap is horrendous, but required for lab -->
                 })
                 .attr("opacity",function(d,i){ <!-- dynamic opacity -->
-                    return rOpacity(d.LandAverageTemperatureUncertainty)
+                    return rOpacity(d.LATU)
                 })
             
             <!-- Make buttons change elements of circle on click -->
@@ -149,41 +149,48 @@
                 .on("click", function () {
                     d3.selectAll("circle")
                         .style("fill", "black")
+                    d3.select("image")
+                        .attr("opacity", 0.35)
                 })
 
             var button1 = d3.scaleLinear()
                 .domain([
-                    d3.min(dataset, d => d.LandAverageTemperatureUncertainty),
-                    d3.max(dataset, d => d.LandAverageTemperatureUncertainty)
+                    d3.min(dataset, d => d.LATU),
+                    d3.max(dataset, d => d.LATU)
                 ])
                 .range(["red", "green"])
 
             d3.select("#colormap-button-1").on("click", function(){
                     d3.selectAll("circle")
-                        .style("fill", d => button1(d.LandAverageTemperatureUncertainty))
+                        .style("fill", d => button1(d.LATU))
                 })
 
             var button2 = d3.scaleDiverging()
                 .domain([
-                    d3.min(dataset, d => d.LandAverageTemperatureUncertainty),
-                    d3.mean(dataset, d => d.LandAverageTemperatureUncertainty),
-                    d3.max(dataset, d => d.LandAverageTemperatureUncertainty)
+                    d3.min(dataset, d => d.LATU),
+                    d3.mean(dataset, d => d.LATU),
+                    d3.max(dataset, d => d.LATU)
                 ])
                 .range(["#d7191c", "#ffffbf", "#1a9641"])
 
             d3.select("#colormap-button-2").on("click", function(){
                     d3.selectAll("circle")
-                        .style("fill", d => button2(d.LandAverageTemperatureUncertainty))
+                        .style("fill", d => button2(d.LATU))
                 })
 
             var button3 = d3.scaleQuantize()
-                .domain(d3.extent(dataset, d => d.LandAndOceanAverageTemperatureUncertainty))
+                .domain(d3.extent(dataset, d => d.LOATU))
                 .range(["#d7191c", "#fdae61", "#ffffbf", "#a6d96a", "#1a9641"])
             
             d3.select("#colormap-button-3").on("click", function(){
                     d3.selectAll("circle")
-                        .style("fill", d => button3(d.LandAverageTemperatureUncertainty))
+                        .style("fill", d => button3(d.LATU))
                 })
+            
+            d3.select("#remove-bg").on("click", function(){
+                d3.select("image")
+                    .attr("opacity", 0)
+            })
         }
         loadData()
     </script>

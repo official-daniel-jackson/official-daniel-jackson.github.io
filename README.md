@@ -1,8 +1,12 @@
 # official-daniel-jackson.github.io
 
-This repository currently contains the submission for *Lab 3 of CSE 5544: Data Visualization*.
+This repository currently contains the submission for *Lab 4: Color uses & D3 interactive editing of visual features*.
 
 Visit the [website](https://official-daniel-jackson.github.io/) to preview the final assignment.
+
+## **Updates via Lab 4**
+
+The pre-existing data was re-implemented using d3's json method over CSV to demonstrate how to handle different data file formats. Former functions related to the scaling of position (X,Y) and radius (r) were altered with updated labels and more impactful scaling methods (scaleLinear & scaleSqrt). The smallest circles measure at 10 and grow to 20 normalized units. Axes (axisBottom, axisLeft) were optimized slightly for faster rendering. Included in the project files is a poorly hand-drawn proof about a hypothetical colormapping being perceptually non-uniform to the human eye based on the variant luminance distance between levels.
 
 ## **New Functionality for Lab 3**
 
